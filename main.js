@@ -1,117 +1,147 @@
- const PolarClock = (() =>{
-   const canvas = document.querySelector('#myCanvas');
-   const ctx = canvas.getContext('2d');
-   const canvasWidth = 600;
-   const canvasHeight = 600;
+const PolarClock = (() =>{
+  const canvas = document.querySelector('#myCanvas');
+  const ctx = canvas.getContext('2d');
 
-   const setUpCanvas = () => {
-     canvas.width = canvasWidth;
-     canvas.height = canvasHeight;
-   };
+  const clock = [];
 
-   const reset = () => {
-     ctx.fillStyle = '#fff';
-     ctx.fillRect(0, 0, canvasWidth, canvasHeight)
-   };
+  let days = { 1:'Sunday', 2:'Monday', 3:'Tuesday', 4:'Wednesday', 5:'Thursday', 6:'Friday', 7:'Saturday' };
+  let months = { 1:'January', 2:'February', 3:'March', 4:'April', 5:'May', 6:'June', 7:'July', 8:'August', 9:'September', 10:'October', 11:'November', 12:'December' };
+
+  const canvasCords = () => {
+    const width = 600;
+    const height= 600;
+
+    const xCenter = width / 2;
+    const yCenter = height / 2;
+    
+    const top = ((height / 2) - height);
+    const left = ((width / 2) - width);
+    const right = (width / 2);
+    const bottom = (height / 2);
+
+    return { width, height, top, bottom, left, right, xCenter, yCenter };
+  };
+
+  const reset = () => {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvasCords().width, canvasCords().height);
+  };
+
+  const time = () => {
+    let now = new Date();
+    let seconds = now.getSeconds();
+    let milliseconds = now.getMilliseconds();
+    let minutes = now.getMinutes();
+    let hours = now.getHours();
+    let day = now.getDay() + 1;
+    let date = now.getDate();
+    let dateFull = days[date];
+    let month = now.getMonth() + 1;
+    let monthFull = months[month];
+
+    return {
+      now, seconds, milliseconds, minutes, hours, day, date, dateFull, month, monthFull
+    }
+  };
+
+  const drawText = () => {
+    let fontSize = canvasCords().width - (canvasCords().width * .95);
+    console.log(fontSize);
+
+    // take font size into consideration    
+    let top = canvasCords().top + (fontSize - (fontSize * .25));
+    let right = canvasCords().right - (fontSize - (fontSize * .50));
+
+    ctx.save();
+    ctx.fillStyle = "#fff";
+    ctx.translate(canvasCords().xCenter, canvasCords().yCenter);
+    ctx.font= `${fontSize}px Arial Rounded MT Bold`;
+
+    // value, x -300 is top, y -300 is top
+    // ctx.fillText('Time: ' + time().now , -290, y-y-280);
+    // ctx.fillText('Seconds: ' + time().seconds, -290, -260);
+    // ctx.fillText('Minutes: ' + time().minutes, -290, -240);
+    // ctx.fillText('Hours: ' + time().hours, -290, -220);
+    // ctx.fillText(`Day: ${time().day} (${days[time().day]})`, -290, -200);
+    // ctx.fillText('Day of Month: ' + time().date, -290, -180);
+    // ctx.fillText(`Month: ${time().month} (${time().monthFull})`, -290, -160);
+
+    // ctx.font = "12px Arial"
+    // ctx.fillText("seconds", left, bottom);
+    // ctx.fillText("minutes", 252, 63);
+    // ctx.fillText("hours", 264, 98);
+    // ctx.fillText("day", 274, 134);
+    // ctx.fillText("date", 270, 168);
+    // ctx.fillText("month", 260, 203);
+
+    // document.querySelector('#myCanvas').title = time().seconds;
+    
+    ctx.fillText(time().seconds, 0 - (fontSize / 2), 0 + (fontSize / 4));
+    ctx.restore();
+  };
+
+  const setupClock = () => {
+
+  };
+
+  const drawArc = (x, y, radius, start, end, color) => {
+    ctx.lineWidth = canvasCords().width - (canvasCords().width * .975);
+    ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.strokeStyle = "hsla(" + (end *(180 / Math.PI) + color) + ",60%,50%,1)";
+    ctx.arc(x, y, radius, start, end, false);
+    ctx.stroke();
+  };
+
+  const draw = () => {
+    let usr_color = 160;
+    let xCenter = canvasCords().xCenter;
+    let yCenter = canvasCords().yCenter;
+    let radius = (canvasCords().width / 2) * .9;
+    let angleStart = (Math.PI/(2/3));
+    let angleEnd = '';
+
+    reset();
+    time();
+
+    drawText(xCenter, yCenter);
+    
+    // seconds
+    angleEnd = ((time().seconds/60)*(Math.PI*2) - (Math.PI/2)) + ((time().milliseconds/60000)*(Math.PI*2));
+    drawArc(xCenter, yCenter, radius, angleStart, angleEnd, usr_color);
+
+    // minutes
+    angleEnd = ((time().minutes/60)*(Math.PI*2) - (Math.PI/2)) + ((time().seconds/3600)*(Math.PI*2));
+    drawArc(xCenter, yCenter, radius - (radius * .1), angleStart, angleEnd, usr_color - 10);
+
+    // hours
+    angleEnd = ((time().hours/24)*(Math.PI*2) - (Math.PI/2)) + ((time().minutes/3600)*(Math.PI*2));
+    drawArc(xCenter, yCenter, radius - (radius * .2), angleStart, angleEnd, usr_color - 20);
+
+    // day
+    angleEnd = ((time().day/7)*(Math.PI*2) - (Math.PI/2));
+    drawArc(xCenter, yCenter, radius - (radius * .4), angleStart, angleEnd, usr_color - 30);
+
+    // date
+    angleEnd = ((time().date/31)*(Math.PI*2) - (Math.PI/2));
+    drawArc(xCenter, yCenter, radius - (radius * .5), angleStart, angleEnd, usr_color - 40);
+
+    // month
+    angleEnd = ((time().month/12)*(Math.PI*2) - (Math.PI/2));
+    drawArc(xCenter, yCenter, radius - (radius * .6), angleStart, angleEnd, usr_color - 50);
+  };
 
   // public methods
   return {
     init: () => {
-      setUpCanvas();
-
-      reset();
-         
+      console.log(canvasCords());
+      canvas.width = canvasCords().width;
+      canvas.height = canvasCords().height;
       
-      ctx.arc(300,300,100,(Math.PI/(2/3)),1.5707963267948966,false)
-      ctx.stroke();
+      setInterval(draw, 1000);
     }
   }
  })();
 
  PolarClock.init();
- 
-//  let positions = { 7:0.285, 12:0.166, 24:0.083, 31:0.064, 60:0.033 };
-//     let position7 = { 0:1.785, 1:0.07, 2:0.355, 3:0.64, 4:0.925, 5:1.21, 6:1.5 };
-//     let position12 = { 0:-0.332, 1:-0.166, 2:0.0, 3:0.166,4:0.332, 5:0.5, 6:0.666, 7:0.832, 8:1.0, 9:1.116, 10:1.132, 11:1.5 };
-//     let position24 = { 0:1.5, 1:1.583, 2:1.666, 3:1.749, 4:1.832, 5:1.915, 6: 0.0, 7:0.083, 8:0.166, 9:0.249, 10:0.332, 11:0.415, 12:0.5, 13:0.583, 14:0.666, 15:0.749, 16:0.832, 17:0.915, 18: 1.0, 19:1.083, 20:1.166, 21:1.249, 22:1.332, 23:1.415 };
-//     let position31 = { 1:1.564, 2:1.628, 3:1.692, 4:1.756, 5:1.82, 6:1.884, 7:1.948, 8:0.012, 9:0.076, 10:0.14, 11:0.204, 12:0.268, 13:0.332, 14:0.396, 15:0.46, 16:0.524, 17:0.588, 18:0.652, 19:0.716, 20:0.78, 21:0.844, 22:0.908, 23:0.972, 24:1.036, 25:1.1, 26:1.164, 27:1.228, 28:1.292,29:1.356, 30:1.42, 31:1.5 };
-//     let position60 = { 1:1.533, 2:1.566, 3:1.599, 4:1.632, 5:1.665, 6:1.698, 7:1.731, 8:1.764, 9:1.797, 10:1.83, 11:1.863, 12:1.896, 13:1.929, 14:1.962, 15:1.995, 16:0.028, 17:0.061, 18:0.094, 19:0.097, 20:0.13, 21:0.163, 22:0.196, 23:0.229, 24:0.262, 25:0.295, 26:0.328, 27:0.361, 28:0.394, 29:0.427, 30:0.46, 31:0.493, 32:0.526, 33:0.559, 34:0.592, 35:0.625, 36:0.658, 37:0.691, 38:0.694, 39:0.727, 40:0.76, 41:0.793, 42:0.826, 43:0.859, 44:0.892, 45:0.925, 46:0.958, 47:0.991, 48:1.024, 49:1.057, 50:1.09, 51:1.123, 52:1.156, 53:1.189, 54:1.222, 55:1.255, 56:1.288, 57:1.321, 58:1.354, 59:1.387, 60:1.5 };
-
-//     let days = { 0:'Sunday', 1:'Monday', 2:'Tuesday', 3:'Wednesday', 4:'Thursday', 5:'Friday', 6:'Saturday' };
-//     let months = { 0:'January', 1:'February', 2:'March', 3:'April', 4:'May', 5:'June', 6:'July', 7:'August', 8:'September', 9:'October', 10:'November', 11:'December' };
-
-//     let now = new Date();
-//     let seconds = now.getSeconds();
-//     let minutes = now.getMinutes();
-//     let hours = now.getHours();
-//     let day = now.getDay();
-//     let calendarDay = now.getDate();
-//     let month = now.getMonth();
-    
-//     let html = `
-//       now: ${ now }<br />
-//       seconds: ${ seconds }<br />
-//       minutes: ${ minutes }<br />
-//       hours: ${ hours }<br />
-//       day: ${ day } ${ days[day] }<br />
-//       dayOfMonth: ${ calendarDay }<br />
-//       month: ${ month } ${ months[month] }
-//     `;
-    
-//     document.querySelector('.date').innerHTML = html;
-
-//     let canvas = document.querySelector('#myCanvas');
-//     let ctxSeconds = canvas.getContext('2d');
-//     let ctxMinutes = canvas.getContext('2d');
-//     let ctxHours = canvas.getContext('2d');
-//     let ctxDays = canvas.getContext('2d');
-//     let ctxDayofMonth = canvas.getContext('2d');
-//     let ctxMonths = canvas.getContext('2d');
-
-//     ctxSeconds.beginPath();
-//     ctxSeconds.arc(300, 300, 275, 1.5*Math.PI, position60[seconds]*Math.PI);
-//     ctxSeconds.lineWidth = 10;
-//     ctxSeconds.lineCap = "round";
-//     ctxSeconds.strokeStyle = 'purple';
-//     ctxSeconds.stroke();
-
-//     ctxMinutes.beginPath();
-//     // ctxMinutes.arc(300, 300, 250, 1.5*Math.PI, position60[minutes]*Math.PI);
-//     ctxSeconds.lineWidth = 10;
-//     ctxSeconds.lineCap = "round";
-//     ctxSeconds.strokeStyle = 'yellow';
-//     ctxSeconds.stroke();
-
-//     ctxHours.beginPath();
-//     // ctxHours.arc(300, 300, 225, 1.5*Math.PI, position24[hours]*Math.PI);
-//     ctxHours.lineWidth = 10;
-//     ctxHours.lineCap = "round";
-//     ctxHours.strokeStyle = 'green';
-//     ctxHours.stroke();
-
-//     ctxDayofMonth.beginPath();
-//     // ctxDayofMonth.arc(300, 300, 150, 1.5*Math.PI, position31[calendarDay]*Math.PI);
-//     ctxDayofMonth.lineWidth = 10;
-//     ctxDayofMonth.lineCap = "round";
-//     ctxDayofMonth.strokeStyle = 'red';
-//     ctxDayofMonth.stroke();
-
-//     ctxDays.beginPath();
-//     // ctxDays.arc(300, 300, 125, 1.5*Math.PI, position7[day]*Math.PI);
-//     ctxDays.lineWidth = 10;
-//     ctxDays.lineCap = "round";
-//     ctxDays.strokeStyle = 'orange';
-//     ctxDays.stroke();
-
-//     ctxMonths.beginPath();
-//     // ctxMonths.arc(300, 300, 100, 1.5*Math.PI, position12[month]*Math.PI);
-//     ctxMonths.lineWidth = 10;
-//     ctxMonths.lineCap = "round";
-//     ctxMonths.strokeStyle = 'blue';
-//     ctxMonths.stroke();
-
-//     function drawClock() {
-//       console.log('tick');
-//     };
-
-//     window.setInterval(drawClock, 1000);
